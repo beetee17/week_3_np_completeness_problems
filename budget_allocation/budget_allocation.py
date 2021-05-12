@@ -15,3 +15,5 @@ def printEquisatisfiableSatFormula():
     print("1 -2 0")
 
 printEquisatisfiableSatFormula()
+
+
