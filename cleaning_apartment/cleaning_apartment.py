@@ -50,6 +50,7 @@ def non_adj_vertices(i, k):
     # print(cnf)
 
     return cnf
+
 def adj_vertices(i, adj):
     global n
     cnf = []
@@ -62,11 +63,10 @@ def adj_vertices(i, adj):
             cnf[-1].append(k+j+1)
 
         cnf[-1].append(0)
+
     return cnf
 
-# This solution prints a simple satisfiable formula
-# and passes about half of the tests.
-# Change this function to solve the problem.
+
 def printEquisatisfiableSatFormula():
     global n
     vertices = []
@@ -111,14 +111,14 @@ def printEquisatisfiableSatFormula():
     for clause in cnf:
         print(' '.join(map(str, clause)))
 
-    with open('temp.txt', 'w+') as temp:
+    with open('/Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/temp.txt', 'w+') as temp:
 
         temp.write("p cnf {} {}\n".format(len(vertices) * n, len(cnf)))
 
         for clause in cnf:
             temp.write('{}\n'.format(' '.join(map(str, clause))))
     
-    os.system('C:\\cygwin\\bin\\minisat.exe C:\\Users\\Admin\\DSA_Course\\week_3_np_completeness_problems\\temp.txt')
+    os.system('minisat /Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/temp.txt')
 
 # 4 3
 # 1 2
