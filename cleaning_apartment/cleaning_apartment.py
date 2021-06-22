@@ -5,120 +5,138 @@ from itertools import combinations
 from collections import defaultdict
 import os
 
-## Ruled out: adjacency matrix issue, vertex_appears_in_path func, too many clauses error. Wrong answer on #7
+def exactly_one_of(literals):
+    cnf = [literals] 
+
+    for pair in combinations(literals, 2):
+        cnf.append([-l for l in pair])
+    
+    return cnf
 
 def vertex_appears_in_path(i):
     global n
 
     cnf = [i+j for j in range(n)]
-    cnf.append(0)
-    
+    # print('RULE 1')
+    # print(cnf)
     return cnf
 
 def vertex_appears_once_in_path(i):    
 
-    cnf = []
+    literals = [i+pos for pos in range(n)]
     
-    for (j1, j2) in combinations(range(n), 2):
-        if j1 != j2:
-            cnf.append([-(i+j1), -(i+j2), 0])
+    cnf = exactly_one_of(literals)
+    # print('RULE 2')
+    # print(cnf)
     
     return cnf
 
 def path_is_occupied(vertices, j):
     cnf = [i+j for i in vertices]
-    cnf.append(0)
+    # print('RULE 3')
+    # print(cnf)
     return cnf
 
 def not_two_nodes_same_position(vertices, j):
 
-    cnf = []
-
-    for (i, k) in combinations(vertices, 2):
-
-        if i != k:
-            cnf.append([-(i+j), -(k+j), 0])
+    literals = [i + j for i in vertices]
+    cnf = exactly_one_of(literals)
+    
+    # print('RULE 4')
+    # print(cnf)
 
     return cnf
 
 def non_adj_vertices(i, k):
     global n
     cnf = []
+    # print(i, 'not adjacent to', k)
 
     for j in range(n-1):
-        cnf.append([-(i+j), -(k+j+1), 0])
-    # print(cnf)
+        cnf.append([-(i+j), -(k+j+1)])
+
+    for j in range(n-1, 0, -1):
+        cnf.append([-(i+j), -(k+j-1)])
+
+    # print('RULE 5')
+    print(cnf)
 
     return cnf
 
 def adj_vertices(i, adj):
     global n
     cnf = []
-    
+    adj_to_i = [(k+1) + (k)*(n-1) for k in range(n) if adj[i][k] == 1]
+    i = (i+1) + i*(n-1)
+
     for j in range(n-1):
+
         cnf.append([-(i+j)])
 
-        for k in adj[i]:
+        for k in adj_to_i:
             
             cnf[-1].append(k+j+1)
 
-        cnf[-1].append(0)
-
+    # print('RULE 5')
+    # print(cnf)
     return cnf
 
 
-def printEquisatisfiableSatFormula():
+def printSatFormula():
     global n
-    vertices = []
-    adj = defaultdict(list)
-    cnf = []
 
-    for i in range(1, n*n, n):
-        vertices.append(i)
-
-    # print(vertices)
-
-    for (i, k) in edges:
-
-        adj[i+(i-1)*(n-1)].append(k+(k-1)*(n-1))
-        adj[k+(k-1)*(n-1)].append(i+(i-1)*(n-1))
-
-    # print(adj)
-
-    for j in range(n):
-        
-        cnf.append(path_is_occupied(vertices, j))
-
-        cnf.extend(not_two_nodes_same_position(vertices, j))
-
+    if m == 0:
+        cnf =  [[1], [-1]]
+        num_variables = 1
     
-    for i in vertices:
+    else:
+        vertices = [i for i in range(1, n*n, n)]
+        num_variables = len(vertices) * n
+        adj = [[0 for i in range(n)] for j in range(n)]
+        cnf = []
 
-        # cnf.append(vertex_appears_in_path(i))
+        # print(vertices)
 
-        cnf.extend(vertex_appears_once_in_path(i))
+        for (i, k) in edges:
+            
+            adj[i-1][k-1] = 1
+            adj[k-1][i-1] = 1
 
-        cnf.extend(adj_vertices(i, adj))
-        # for k in vertices:
+        for j in range(n):
+            
+            cnf.append(path_is_occupied(vertices, j))
 
-            # print(i, (i+n-1)//n -1, k, (k+n-1)//n -1)
-            # if not k in adj[i] and i != k:
-                # print(i, k)
-                # cnf.extend(non_adj_vertices(i, k))
-    # print(cnf)
-    print("{} {}".format(len(cnf), len(vertices) * n))
-   
+            cnf.extend(not_two_nodes_same_position(vertices, j))
+
+        
+        for i in vertices:
+
+            cnf.append(vertex_appears_in_path(i))
+
+            cnf.extend(vertex_appears_once_in_path(i))
+
+        # pairs = combinations(vertices, 2)
+        # for (i, k) in pairs:
+        #     if not k in adj[i]:
+        #         cnf.extend(non_adj_vertices(i, k))
+        
+        for i in range(n):
+            cnf.extend(adj_vertices(i, adj))
+
+    print("{} {}".format(len(cnf), num_variables))
+
     for clause in cnf:
+        clause.append(0)
         print(' '.join(map(str, clause)))
 
-    with open('/Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/temp.txt', 'w+') as temp:
+    # with open('/Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/temp.txt', 'w+') as temp:
 
-        temp.write("p cnf {} {}\n".format(len(vertices) * n, len(cnf)))
+    #     temp.write("p cnf {} {}\n".format(num_variables, len(cnf)))
 
-        for clause in cnf:
-            temp.write('{}\n'.format(' '.join(map(str, clause))))
+    #     for clause in cnf:
+    #         temp.write('{}\n'.format(' '.join(map(str, clause))))
     
-    os.system('minisat /Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/temp.txt')
+    # os.system('minisat /Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/temp.txt')
 
 # 4 3
 # 1 2
@@ -126,7 +144,7 @@ def printEquisatisfiableSatFormula():
 # 1 4
 # UNSATISFIABLE
 
-    
+
 # 5 4
 # 1 2
 # 2 3
@@ -134,7 +152,7 @@ def printEquisatisfiableSatFormula():
 # 4 5
 # SATISFIABLE
 
-printEquisatisfiableSatFormula()
+printSatFormula()
 
 # Each node j must appear in the path.
 # • x1j ∨ x2j ∨ · · · ∨ xnj for each j.
