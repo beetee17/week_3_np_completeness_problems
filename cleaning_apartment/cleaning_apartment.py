@@ -50,6 +50,8 @@ def not_two_nodes_same_position(vertices, j):
 def non_adj_vertices(i, k):
     global n
     cnf = []
+    i = (i+1) + i*(n-1)
+    k =(k+1) + (k)*(n-1)
     # print(i, 'not adjacent to', k)
 
     for j in range(n-1):
@@ -59,7 +61,7 @@ def non_adj_vertices(i, k):
         cnf.append([-(i+j), -(k+j-1)])
 
     # print('RULE 5')
-    print(cnf)
+    # print(cnf)
 
     return cnf
 
@@ -85,7 +87,7 @@ def adj_vertices(i, adj):
 def printSatFormula():
     global n
 
-    if m == 0:
+    if m < n-1:
         cnf =  [[1], [-1]]
         num_variables = 1
     
@@ -106,6 +108,7 @@ def printSatFormula():
             
             cnf.append(path_is_occupied(vertices, j))
 
+        for j in range(n):
             cnf.extend(not_two_nodes_same_position(vertices, j))
 
         
@@ -113,15 +116,16 @@ def printSatFormula():
 
             cnf.append(vertex_appears_in_path(i))
 
+        for i in vertices:
             cnf.extend(vertex_appears_once_in_path(i))
 
-        # pairs = combinations(vertices, 2)
-        # for (i, k) in pairs:
-        #     if not k in adj[i]:
-        #         cnf.extend(non_adj_vertices(i, k))
+        pairs = combinations(range(n), 2)
+        for (i, k) in pairs:
+            if adj[i][k] == 0:
+                cnf.extend(non_adj_vertices(i, k))
         
-        for i in range(n):
-            cnf.extend(adj_vertices(i, adj))
+        # for i in range(n):
+        #     cnf.extend(adj_vertices(i, adj))
 
     print("{} {}".format(len(cnf), num_variables))
 
@@ -129,14 +133,14 @@ def printSatFormula():
         clause.append(0)
         print(' '.join(map(str, clause)))
 
-    # with open('/Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/temp.txt', 'w+') as temp:
+    with open('/Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/clean_apartment.txt', 'w+') as temp:
 
-    #     temp.write("p cnf {} {}\n".format(num_variables, len(cnf)))
+        temp.write("p cnf {} {}\n".format(num_variables, len(cnf)))
 
-    #     for clause in cnf:
-    #         temp.write('{}\n'.format(' '.join(map(str, clause))))
+        for clause in cnf:
+            temp.write('{}\n'.format(' '.join(map(str, clause))))
     
-    # os.system('minisat /Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/temp.txt')
+    os.system('minisat /Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/clean_apartment.txt')
 
 # 4 3
 # 1 2
