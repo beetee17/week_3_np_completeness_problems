@@ -1,6 +1,4 @@
 # python3
-n, m = map(int, input().split())
-edges = [ list(map(int, input().split())) for i in range(m) ]
 from itertools import combinations
 from collections import defaultdict
 import os
@@ -13,15 +11,14 @@ def exactly_one_of(literals):
     
     return cnf
 
-def vertex_appears_in_path(i):
-    global n
+def vertex_appears_in_path(i, n):
 
     cnf = [i+j for j in range(n)]
     # print('RULE 1')
     # print(cnf)
     return cnf
 
-def vertex_appears_once_in_path(i):    
+def vertex_appears_once_in_path(i, n):    
 
     literals = [i+pos for pos in range(n)]
     
@@ -47,8 +44,8 @@ def not_two_nodes_same_position(vertices, j):
 
     return cnf
 
-def non_adj_vertices(i, k):
-    global n
+def non_adj_vertices(i, k, n):
+
     cnf = []
     i = (i+1) + i*(n-1)
     k =(k+1) + (k)*(n-1)
@@ -65,8 +62,8 @@ def non_adj_vertices(i, k):
 
     return cnf
 
-def adj_vertices(i, adj):
-    global n
+def adj_vertices(i, adj, n):
+
     cnf = []
     adj_to_i = [(k+1) + (k)*(n-1) for k in range(n) if adj[i][k] == 1]
     i = (i+1) + i*(n-1)
@@ -84,9 +81,8 @@ def adj_vertices(i, adj):
     return cnf
 
 
-def printSatFormula():
-    global n
-
+def printSatFormula(n, m, edges):
+    
     if m < n-1:
         cnf =  [[1], [-1]]
         num_variables = 1
@@ -114,33 +110,36 @@ def printSatFormula():
         
         for i in vertices:
 
-            cnf.append(vertex_appears_in_path(i))
+            cnf.append(vertex_appears_in_path(i, n))
 
         for i in vertices:
-            cnf.extend(vertex_appears_once_in_path(i))
+            cnf.extend(vertex_appears_once_in_path(i, n))
 
         pairs = combinations(range(n), 2)
         for (i, k) in pairs:
             if adj[i][k] == 0:
-                cnf.extend(non_adj_vertices(i, k))
+                cnf.extend(non_adj_vertices(i, k, n))
         
         # for i in range(n):
         #     cnf.extend(adj_vertices(i, adj))
 
-    print("{} {}".format(len(cnf), num_variables))
+    # print("{} {}".format(len(cnf), num_variables))
 
-    for clause in cnf:
-        clause.append(0)
-        print(' '.join(map(str, clause)))
-
-    with open('/Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/clean_apartment.txt', 'w+') as temp:
+    # for clause in cnf:
+    #     clause.append(0)
+    #     print(' '.join(map(str, clause)))
+    
+    input_file = '/Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/clean_apartment.txt'
+    output_file = '/Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/clean_apartment_out.txt'
+    with open(input_file, 'w+') as temp:
 
         temp.write("p cnf {} {}\n".format(num_variables, len(cnf)))
 
         for clause in cnf:
+            clause.append(0)
             temp.write('{}\n'.format(' '.join(map(str, clause))))
     
-    os.system('minisat /Users/brandonthio/Python/Coursera_DSA/week_3_np_completeness_problems/clean_apartment.txt')
+    os.system('minisat {} {}'.format(input_file, output_file))
 
 # 4 3
 # 1 2
@@ -155,8 +154,12 @@ def printSatFormula():
 # 3 5
 # 4 5
 # SATISFIABLE
+if __name__ == '__main__':
 
-printSatFormula()
+    n, m = map(int, input().split())
+    edges = [ list(map(int, input().split())) for i in range(m) ]
+
+    printSatFormula(n, m, edges)
 
 # Each node j must appear in the path.
 # • x1j ∨ x2j ∨ · · · ∨ xnj for each j.
